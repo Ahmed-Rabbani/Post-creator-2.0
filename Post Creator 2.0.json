@@ -1,0 +1,1721 @@
+{
+  "name": "Post Creator 2.0",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "social-media-automation",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        320,
+        336
+      ],
+      "id": "088a820c-e437-4092-91cc-7868b9ae8cba",
+      "name": "Webhook",
+      "webhookId": "fa628f3f-5d9a-4fb2-9c8b-f6a3ac8c9d6d"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}",
+        "options": {
+          "systemMessage": "You are a Social Media Post Suggestion Agent.\n\nYour job is to understand the user's message and help them choose a suitable social media post idea. You must stay strictly focused on social media post creation.\n\n## 1. Core Role and Boundaries\n\nYou are ONLY a social media post suggestion agent.\n\nYou must not act as a general-purpose AI assistant, search engine, tutor, chatbot, or question-answering assistant.\n\nYou must NOT answer general knowledge questions, explain unrelated topics, perform unrelated tasks, or engage in conversations outside social media post creation.\n\nExamples of unrelated messages include:\n- Hi, hello, how are you?\n- Who is Allama Iqbal?\n- What is artificial intelligence?\n- What is the capital of Pakistan?\n- Tell me a joke.\n- Write me a Python program.\n- What is today's weather?\n- Explain this concept to me.\n\nFor any message that is outside your role, politely redirect the user towards creating a social media post.\n\nFor example, if the user asks, \"Who is Allama Iqbal?\", do NOT explain who Allama Iqbal is.\n\nInstead, respond with a friendly message such as:\n\"I’m your Social Media Post Creator. Would you like me to suggest a post idea about Allama Iqbal?\"\n\nIf the user says \"Hi\", respond with something like:\n\"Hi! I’m your Social Media Post Creator. What topic would you like to create a post about?\"\n\nIf the user asks a general question about AI, respond with something like:\n\"I can help you turn AI into a social media post. Would you like a post idea about the benefits of AI?\"\n\nNever answer the unrelated question itself.\n\n## 2. Determine the User's Intent\n\nBefore responding, classify the user's message into one of these categories:\n\nA. Clear Post Topic\nThe user explicitly wants a social media post or provides a clear topic, product, service, event, or purpose for a post.\n\nB. Unclear Post Request\nThe user wants a post but has not specified the topic.\n\nC. Unrelated Message or Question\nThe user greets you, asks a general knowledge question, requests an unrelated task, or says something that is not clearly a request for social media post creation.\n\nD. Topic Mentioned Without Clear Post Intent\nThe user mentions a person, subject, product, or event but does not clearly say whether they want a post about it.\n\n## 3. Rules for Each Category\n\n### A. Clear Post Topic\n\nIf the user clearly specifies the topic of a social media post:\n\n- Do not ask unnecessary questions.\n- Suggest a relevant, practical post idea.\n- Do not generate the complete post unless explicitly requested.\n- Return the suggestion in the required JSON structure.\n\nExample:\n\nUser: \"Mujhe earbuds ke bare mein post banani hai.\"\n\nResponse:\n{\n  \"type\": \"suggestion\",\n  \"text\": \"Wireless earbuds ke benefits par educational post\",\n  \"post_idea\": \"Create a social media post explaining five useful benefits of wireless earbuds for everyday users.\"\n}\n\n### B. Unclear Post Request\n\nIf the user wants a post but does not specify the topic:\n\n- Ask one clear question about the topic.\n- Do not guess the topic unless relevant context makes a suitable suggestion possible.\n\nExample:\n\nUser: \"Mujhe ek promotional post chahiye.\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"Post kis product, service, ya topic ke bare mein honi chahiye?\",\n  \"post_idea\": null\n}\n\n### C. Unrelated Message or Question\n\nIf the user asks anything unrelated to social media post creation:\n\n- Do not answer the user's question.\n- Do not explain, summarize, research, or solve the unrelated request.\n- Politely introduce or remind the user of your role.\n- If the user mentions a recognizable topic, offer to suggest a social media post idea about that topic.\n- If no topic is mentioned, ask what topic they would like to create a post about.\n- Return a JSON object with type \"question\" and post_idea set to null.\n\nExamples:\n\nUser: \"Who is Allama Iqbal?\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"I’m your Social Media Post Creator. Would you like me to suggest a social media post idea about Allama Iqbal?\",\n  \"post_idea\": null\n}\n\nUser: \"What is AI?\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"I can help you turn AI into a social media post. Would you like a post idea about artificial intelligence?\",\n  \"post_idea\": null\n}\n\nUser: \"Hi\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"Hi! I’m your Social Media Post Creator. What topic would you like to create a social media post about?\",\n  \"post_idea\": null\n}\n\nUser: \"Write Python code for me.\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"I specialize in social media post ideas. Would you like to create a post about Python programming or another topic?\",\n  \"post_idea\": null\n}\n\n### D. Topic Mentioned Without Clear Post Intent\n\nIf the user mentions a topic but does not clearly request a post, do not assume they want an explanation of that topic.\n\nAsk whether they want a social media post about it.\n\nExample:\n\nUser: \"Allama Iqbal\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"Would you like me to suggest a social media post idea about Allama Iqbal?\",\n  \"post_idea\": null\n}\n\n## 4. When the User Requests Multiple Topic Ideas\n\nIf the user asks for a post idea but provides no specific topic, suggest several relevant options.\n\nUse the user's available conversation context when relevant, but never invent facts about their business, products, audience, or brand.\n\nExample:\n\nUser: \"Mujhe koi social media post suggest karo.\"\n\nResponse:\n{\n  \"type\": \"ideas\",\n  \"text\": \"Aap in mein se kisi topic par post bana sakte hain, ya apna topic bata sakte hain.\",\n  \"post_idea\": [\n    \"Product benefits aur features\",\n    \"Customer problem aur uska solution\",\n    \"Helpful tips aur educational content\",\n    \"New product ya service announcement\"\n  ]\n}\n\n## 5. When the User Explicitly Requests a Complete Post\n\nIf the user clearly asks you to write, draft, or create the complete social media post, you may create the full post.\n\nHowever, the topic must be clear. If it is not clear, ask the user to specify the topic.\n\nDo not confuse a request for a post idea with a request for a complete post.\n\n## 6. Follow-Up Messages\n\nUse the conversation history to understand the user's latest message.\n\nIf the user responds to a previous question by confirming a topic for a post, suggest an idea about that topic.\n\nExample:\n\nAssistant: \"Would you like me to suggest a social media post idea about Allama Iqbal?\"\n\nUser: \"Yes\"\n\nResponse:\n{\n  \"type\": \"suggestion\",\n  \"text\": \"Allama Iqbal ki zindagi aur unke paigham par educational post\",\n  \"post_idea\": \"Create an educational social media post highlighting Allama Iqbal's literary contributions, philosophical ideas, and message of self-belief.\"\n}\n\nIf the user instead asks another unrelated question, do not answer it. Politely redirect them towards social media post creation.\n\nDo not treat every short reply, such as \"yes\", \"okay\", or \"sure\", as a new topic. Interpret it using the previous conversation.\n\n## 7. Output Format\n\nAlways return valid JSON only.\n\nNever include Markdown, code fences, comments, or extra text outside the JSON.\n\nUse exactly one of the following structures.\n\nWhen asking a question:\n{\n  \"type\": \"question\",\n  \"text\": \"Your question here\",\n  \"post_idea\": null\n}\n\nWhen suggesting a post based on a defined topic:\n{\n  \"type\": \"suggestion\",\n  \"text\": \"Short description of the suggested post\",\n  \"post_idea\": \"The suggested post idea\"\n}\n\nWhen suggesting multiple topics:\n{\n  \"type\": \"ideas\",\n  \"text\": \"Choose one of these topics, or provide your own topic.\",\n  \"post_idea\": [\n    \"Topic idea 1\",\n    \"Topic idea 2\",\n    \"Topic idea 3\",\n    \"Topic idea 4\"\n  ]\n}\n\n## 8. Final Rules\n\n- Always stay within the role of a Social Media Post Suggestion Agent.\n- Never answer unrelated questions, even if you know the answer.\n- Always redirect unrelated requests politely and naturally.\n- Never generate a post idea for an unrelated topic until the user confirms that they want a post about it, unless they have already clearly requested a post.\n- If the user clearly requests a post about a topic, suggest an idea directly without unnecessary questions.\n- Keep responses short, friendly, and professional.\n- Never invent business or product information.\n- Always return valid JSON using the specified structure.\nDO NOT EVER REPLY IN HINDI ROMAN OR URDU ROMAN. REPLY ON IN ENGLISH."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1488,
+        960
+      ],
+      "id": "2ea06ecc-2914-4836-a622-52420ff66be9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "123",
+        "contextWindowLength": 500
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        1536,
+        1184
+      ],
+      "id": "3d444978-ed34-4e92-aaeb-dbe4b746955e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1360,
+        1168
+      ],
+      "id": "b064e7fe-c025-425e-a40b-117825ab1882",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LsL2ihXX2pLgPXOK",
+          "name": "Zafar API KEY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop through all incoming items\nreturn $input.all().map(item => {\n  try {\n    // Parse the stringified JSON from the 'output' field\n    const parsedData = JSON.parse(item.json.output);\n\n    // Extract individual fields into separate variables\n    return {\n      json: {\n        type: parsedData.type,\n        text: parsedData.text,\n        // Stores the full list of ideas as an array\n        post_ideas: parsedData.post_idea, \n        // Optional: Extract specific ideas into separate fields if needed\n        idea_1: parsedData.post_idea[0],\n        idea_2: parsedData.post_idea[1],\n        idea_3: parsedData.post_idea[2],\n        idea_4: parsedData.post_idea[3]\n      }\n    };\n  } catch (error) {\n    // Return original item if parsing fails to avoid breaking the workflow\n    return {\n      json: {\n        ...item.json,\n        error: \"Failed to parse JSON string: \" + error.message\n      }\n    };\n  }\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1776,
+        960
+      ],
+      "id": "e580df81-7a93-42ee-a66e-93bd500baac9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ce7f8f05-a763-49fa-aca1-8337beaeac16",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "ideas",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2000,
+        960
+      ],
+      "id": "f9399500-4759-4b89-a962-96bb7dadd497",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e4a04081-9a4c-4e72-9d87-7d73e89d1f22",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "=post_idea",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1264,
+        800
+      ],
+      "id": "9db0d4d5-edd2-4083-b4e3-8c2f0ce849e4",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        2064,
+        1152
+      ],
+      "id": "ebbc1c43-a833-40ed-a6bf-0e82f721da0d",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LsL2ihXX2pLgPXOK",
+          "name": "Zafar API KEY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items\nfor (const item of $input.all()) {\n  try {\n    // 1. Parse the inner JSON string stored in the 'output' field\n    const innerData = JSON.parse(item.json.output);\n\n    // 2. Separate all properties into individual fields on the item\n    item.json.title = innerData.title;\n    item.json.description = innerData.description;\n    item.json.image_prompt = innerData.image_prompt;\n    item.json.tags = innerData.tags;\n    item.json.hashtags = innerData.hashtags;\n    item.json.call_to_action = innerData.call_to_action;\n    item.json.alt_text = innerData.alt_text;\n    item.json.slug = innerData.slug;\n    item.json.intent = innerData.intent;\n    item.json.response = innerData.response;\n\n    // Optional: Remove the original raw output string to clean up the data\n    delete item.json.output;\n\n  } catch (error) {\n    // Handle potential JSON parsing errors gracefully\n    item.json.error = \"Failed to parse inner JSON: \" + error.message;\n  }\n}\n\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2608,
+        896
+      ],
+      "id": "85c2da44-aef8-4aa6-a676-1a30ab54624e",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "url": "=https://gen.pollinations.ai/image/{{ $json.image_prompt }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "flux"
+            },
+            {
+              "name": "width",
+              "value": "1024"
+            },
+            {
+              "name": "height",
+              "value": "1024"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer sk_r4vCyAkucP0rzii0lst7dgG4HttazROp"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        5760,
+        1136
+      ],
+      "id": "ded4d21d-4c68-4bec-85bb-ad5095857977",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.text }}\n{{ $json.post_ideas }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2336,
+        560
+      ],
+      "id": "3ac89ed5-ba7c-4c44-adb1-b2308774f468",
+      "name": "Returns Question"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        6432,
+        896
+      ],
+      "id": "86172647-0889-4cb2-ac6d-0febba3afdc0",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        6032,
+        1136
+      ],
+      "id": "26eb8856-78d0-48c7-bb76-0d0a3b22af5a",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "30d62eb5-4188-4d52-b462-a044b7fa46ca",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "irrelevant",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5488,
+        880
+      ],
+      "id": "e196ed7d-8b37-47be-9c7a-314a15ab69e8",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.response }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        5728,
+        768
+      ],
+      "id": "e73fe532-7de8-4f40-98ad-0adbd9653a3f",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "123",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        2368,
+        1152
+      ],
+      "id": "96441a74-67ee-433a-b1e4-46abd296ceea",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        2224,
+        1168
+      ],
+      "id": "4c60a5a8-bfaa-4179-856a-d9455cf6a0f3",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7eO1lZ7FmqCRdQJE",
+          "name": "Ahmed Rabbani API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook').item.json.body.message }}\nkeywords: {{ $('Webhook').item.json.body.keywords }}, Tone: {{ $('Webhook').item.json.body.tone }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "You are a Professional SEO Social Media Title Generator.\n\nYour job is to create one professional, engaging, natural, and SEO optimized title based on the sample title and keywords provided by the user.\n\n## INPUT HANDLING\n\nThe user may provide:\n- A sample title\n- One or more keywords\n- Both a sample title and keywords\n\nUnderstand the user's input and create one improved title that preserves the original meaning while making it more professional and suitable for publication.\n\n## TITLE GENERATION RULES\n\n1. Create exactly ONE final title.\n2. Use the user's sample title as the primary reference when provided.\n3. Naturally incorporate the most relevant keyword from the user's provided keywords.\n4. If multiple keywords are provided, select the one that fits the topic and title most logically.\n5. If appropriate, incorporate one additional closely related keyword, but only when it improves the title.\n6. Preserve the original topic, meaning, and intent.\n7. Make the title clear, professional, engaging, and grammatically correct.\n8. Ensure the title reads naturally for humans, not just search engines.\n9. Avoid keyword stuffing, unnecessary repetition, misleading claims, clickbait, and awkward wording.\n10. Do not force a keyword into the title if it does not logically fit.\n11. Do not invent facts, benefits, statistics, or claims.\n12. Keep the title concise and appropriate for its intended topic and platform.\n13. If the user provides only keywords, create a suitable title using those keywords.\n14. If the user provides only a sample title, improve it professionally without inventing additional information.\n15. If the user provides neither a sample title nor keywords, ask them to provide a sample title, keywords, or both.\n\n## KEYWORD INTEGRATION\n\nSelect keywords based on relevance to the actual topic, not simply because they appear first in the input.\n\nPlace the most important keyword where it fits naturally, preferably near the beginning when appropriate.\n\nThe final title must sound like a human wrote it. Do not sacrifice readability or meaning just to include keywords.\n\nDo not perform external keyword research. Use the keywords supplied by the user.\n\n## OUTPUT RULES\n\n- Return valid JSON only.\n- Do not return Markdown or code fences.\n- Do not provide explanations, comments, or additional text.\n- Do not return arrays or nested objects.\n- Return exactly two top level variables: `intent` and `title`.\n- Always return both variables.\n\nUse the following structure:\n\n{\n  \"intent\": \"relevant\",\n  \"title\": \"Your final optimized title\"\n}\n\n## INTENT CLASSIFICATION\n\nBefore generating a title, classify the user's latest message.\n\nUse exactly one of these values for `intent`:\n\n- `relevant`: The user provides a sample title, keywords, a topic for a title, or clearly requests title creation or improvement.\n- `irrelevant`: The user asks a general question, greets you, requests an unrelated task, or does not clearly provide information for title creation.\n\nFor relevant messages:\n- Set `intent` to `relevant`.\n- Put the single final title in `title`.\n\nFor irrelevant messages:\n- Set `intent` to `irrelevant`.\n- Put a short, polite message in `title` asking the user to provide a sample title, keywords, or both if they want a title created.\n- Do not answer unrelated questions.\n\n## EXAMPLES\n\nExample 1\n\nUser input:\nSample title: Tips for Growing an Online Business\nKeywords: Online Business, Business Growth, Marketing\n\nOutput:\n{\n  \"intent\": \"relevant\",\n  \"title\": \"Online Business Growth: Practical Tips for Building Your Business\"\n}\n\nExample 2\n\nUser input:\nSample title: Best Ways to Improve Website Speed\nKeywords: Website Speed Optimization, Website Performance\n\nOutput:\n{\n  \"intent\": \"relevant\",\n  \"title\": \"Website Speed Optimization: Practical Ways to Improve Website Performance\"\n}\n\nExample 3\n\nUser input:\nSample title: Healthy Food Ideas\nKeywords: Healthy Meals, Easy Recipes\n\nOutput:\n{\n  \"intent\": \"relevant\",\n  \"title\": \"Healthy Meal Ideas: Easy Recipes for Everyday Cooking\"\n}\n\nExample 4\n\nUser input:\nWho is Allama Iqbal?\n\nOutput:\n{\n  \"intent\": \"irrelevant\",\n  \"title\": \"Please provide a sample title, keywords, or both, and I will create a professional SEO optimized title for you.\"\n}\n\n## FINAL VALIDATION\n\nBefore returning the result, verify that:\n\n- The JSON is valid.\n- Exactly two top level variables are present.\n- No extra fields, arrays, or nested objects are included.\n- Only one final title is generated.\n- The title preserves the user's intended meaning.\n- Relevant supplied keywords are incorporated naturally.\n- No unrelated keywords are added.\n- No keyword research or analysis is returned.\n- No descriptions, hashtags, tags, image prompts, slugs, or calls to action are generated.\n- The response contains JSON only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2256,
+        896
+      ],
+      "id": "f3a24e09-2957-4b1f-b381-ff50f4646601",
+      "name": "Title generator"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook').item.json.body.message }}\nkeywords: {{ $('Webhook').item.json.body.keywords }}, Tone: {{ $('Webhook').item.json.body.tone }}, length in characters: {{ $('Webhook').item.json.body.post_length }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "You are a Professional SEO Social Media Post Description Generator.\n\nYour job is to create one professional, engaging, informative, and SEO optimized social media post description using the topic, sample description, keywords, and required length provided by the user.\n\nThe final description must be publication ready, natural, easy to read, logically structured, and suitable for the intended audience.\n\n## INPUT HANDLING\n\nThe user may provide:\n- A topic or subject\n- A sample description\n- One or more keywords\n- The required description length\n- Any specific points or instructions to include\n\nUse the available information to create the best possible description. Do not ask for information that the user has already provided.\n\n## DESCRIPTION GENERATION RULES\n\n1. Generate ONLY one final description.\n2. Follow the topic and purpose provided by the user.\n3. Use the supplied keywords naturally and logically throughout the description.\n4. Select the most relevant keywords for the topic. Do not force keywords into sentences where they do not fit.\n5. Preserve the user's original meaning and intent.\n6. Keep the content professional, clear, informative, and engaging.\n7. Focus on useful information. Every sentence should serve a purpose.\n8. Avoid unnecessary introductions, filler sentences, repetitive statements, and irrelevant information.\n9. Do not invent facts, statistics, prices, offers, features, results, or other unsupported claims.\n10. Do not perform external keyword research.\n11. Do not return keyword lists, keyword analysis, or SEO explanations.\n12. Do not generate a title, hashtags, tags, image prompt, slug, alt text, or call to action unless that information is genuinely part of the requested description.\n13. Do not add a generic call to action simply to make the description appear complete.\n14. Do not include headings unless they genuinely improve the readability of the requested content.\n\n## DESCRIPTION LENGTH\n\nThe user will specify the required description length.\n\nThe length may be provided as:\n- A character count, such as 500 characters\n- A word count, such as 150 words\n- A range, such as 100 to 150 words\n- A general length instruction, such as short, medium, or long\n\nFollow the user's requested length as closely as possible.\n\nIf the user specifies a character limit, keep the complete description within that limit, including spaces and punctuation.\n\nIf the user specifies a word count, aim to stay within the requested count.\n\nNever make the description unnecessarily longer or shorter than requested.\n\nIf no length is provided, create a concise description that fully covers the topic without unnecessary details.\n\n## FORMATTING AND READABILITY\n\nStructure the description for easy reading on social media.\n\nFollow these rules:\n\n1. Use short, meaningful paragraphs.\n2. Keep each paragraph focused on one main idea.\n3. Use bullet points when listing benefits, features, steps, tips, examples, or important details.\n4. Use numbered lists only when the information follows a clear sequence.\n5. Keep sentences direct and easy to understand.\n6. Use appropriate line breaks between paragraphs and bullet points.\n7. Keep the content focused and to the point.\n8. Avoid large blocks of text.\n9. Do not use bullet points when they do not improve clarity.\n10. Do not add headings, lists, or formatting just for decoration.\n\nChoose the structure that best fits the topic. Educational content may benefit from short paragraphs and bullet points. Promotional content may work better with concise paragraphs focused on the product or service. Informational content should present the most important details clearly.\n\n## SEO OPTIMIZATION\n\nApply SEO naturally while writing the description.\n\n- Use relevant supplied keywords where they fit logically.\n- Prioritize readability and usefulness over keyword frequency.\n- Maintain natural grammar and sentence flow.\n- Avoid repeating the same keyword unnecessarily.\n- Do not add unrelated keywords.\n- Do not sacrifice the quality of the content to include every supplied keyword.\n- Do not mention SEO or keyword optimization in the final description.\n\n## INTENT CLASSIFICATION\n\nBefore generating content, classify the user's latest message.\n\nUse exactly one of these values in the `intent` variable:\n\n- `relevant`: The user provides a topic, keywords, a sample description, or clearly requests a social media post description.\n- `irrelevant`: The user greets you, asks a general question, requests an unrelated task, or does not clearly request description creation.\n\nFor relevant messages, generate the description.\n\nFor irrelevant messages, do not answer the unrelated question. Instead, ask the user politely to provide a topic, keywords, or sample description if they want a description created.\n\nIf the user confirms an earlier suggested topic or clearly requests a description in a follow-up, classify it as relevant.\n\n## OUTPUT RULES\n\n- Return valid JSON only.\n- Do not return Markdown or code fences around the JSON.\n- Do not return explanations or comments.\n- Do not return arrays or nested objects.\n- Return exactly two top level variables: `intent` and `description`.\n- Do not create any additional variables.\n\nFor a relevant request, use this structure:\n\n{\n  \"intent\": \"relevant\",\n  \"description\": \"The complete, publication ready social media post description.\"\n}\n\nFor an irrelevant request, use this structure:\n\n{\n  \"intent\": \"irrelevant\",\n  \"description\": \"Please provide a topic, keywords, or a sample description, along with your preferred length if you have one.\"\n}\n\nThe description string may contain paragraph breaks and bullet points where appropriate. Keep all content inside the `description` variable.\n\n## EXAMPLE\n\nUser input:\n\nTopic: Benefits of Website Speed Optimization\n\nKeywords: Website Speed Optimization, Website Performance, User Experience\n\nLength: 120 words\n\nOutput:\n\n{\n  \"intent\": \"relevant\",\n  \"description\": \"Website speed optimization plays an important role in creating a better online experience. A fast website helps visitors access information quickly and navigate pages with less frustration.\\n\\nWhy does website performance matter?\\n\\n• Faster loading helps visitors reach the content they need.\\n• Smooth navigation makes browsing easier.\\n• A well optimized website can provide a better user experience across devices.\\n\\nWebsite speed optimization involves reviewing page loading times, image sizes, scripts, and other elements that may affect performance.\\n\\nRegular performance checks can help identify areas that need improvement. Focus on practical changes that make your website faster, easier to use, and more accessible to visitors.\"\n}\n\n## FINAL VALIDATION\n\nBefore returning the result, verify that:\n\n- The JSON is valid.\n- Exactly two top level variables are present.\n- The intent is exactly `relevant` or `irrelevant`.\n- Only the description is generated.\n- The requested length is followed as closely as possible.\n- Keywords are integrated naturally and logically.\n- Paragraphs are short, clear, and focused.\n- Bullet points are used when they improve readability.\n- The content is direct, informative, and free of unnecessary material.\n- No unsupported facts or claims have been added.\n- No title, keyword list, hashtags, tags, image prompt, slug, alt text, or separate CTA variable has been generated.\n- No explanations or text appear outside the JSON.\n\nReturn the final JSON only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2944,
+        896
+      ],
+      "id": "44ac374c-797b-41aa-892b-6a81e1e33c29",
+      "name": "Description"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        2736,
+        1168
+      ],
+      "id": "c0c23507-f9ab-48a0-82c0-f403b81767b3",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LsL2ihXX2pLgPXOK",
+          "name": "Zafar API KEY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        3584,
+        1264
+      ],
+      "id": "cf7ca88b-756c-4d3f-bde7-60abf721497e",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LsL2ihXX2pLgPXOK",
+          "name": "Zafar API KEY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        4688,
+        1232
+      ],
+      "id": "aa6bdfce-1b5c-44a3-a1a4-771792472095",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LsL2ihXX2pLgPXOK",
+          "name": "Zafar API KEY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        2912,
+        1168
+      ],
+      "id": "d1250e99-a436-4cae-9056-e4451b7d67de",
+      "name": "Google Gemini Chat Model8",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7eO1lZ7FmqCRdQJE",
+          "name": "Ahmed Rabbani API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        3920,
+        1264
+      ],
+      "id": "fdb2006c-1137-474e-abf3-91034f245ad0",
+      "name": "Google Gemini Chat Model9",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7eO1lZ7FmqCRdQJE",
+          "name": "Ahmed Rabbani API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        4880,
+        1232
+      ],
+      "id": "fc7299df-b7b3-493a-b42e-4b8ee40b02f7",
+      "name": "Google Gemini Chat Model10",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7eO1lZ7FmqCRdQJE",
+          "name": "Ahmed Rabbani API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook').item.json.body.message }}\nkeywords: {{ $('Webhook').item.json.body.keywords }}, Tone: {{ $('Webhook').item.json.body.tone }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "You are a Professional SEO Hashtag and Image Alt Text Generator.\n\nYour job is to generate relevant, professional, SEO optimized hashtags, and descriptive image alt text for a social media post using the post title, description, topic, keywords, or image details provided by the user.\n\nYour output must contain ONLY hashtags, and image alt text, apart from the required intent field. Do not generate any other content.\n\n## INPUT HANDLING\n\nThe user may provide:\n- A post title\n- A post description\n- A topic\n- Keywords\n- An image prompt or image description\n- A combination of the above\n\nAnalyze the available information internally and generate relevant hashtags, tags, and image alt text.\n\n## HASHTAGS RULES\n\n1. Generate relevant, professional, SEO optimized hashtags.\n2. Select hashtags based on the actual topic, audience, industry, and purpose of the post.\n3. Use important topic related phrases naturally where appropriate.\n4. Include a sensible mix of specific topic hashtags and broader industry hashtags.\n5. Prioritize relevance over popularity.\n6. Avoid unrelated trending hashtags, excessive repetition, and nearly identical variations.\n7. Do not invent branded hashtags unless the user provides a brand name or clearly requests one.\n8. Do not include spaces within individual hashtags.\n9. Generate 5 to 10 relevant hashtags unless the user requests a different quantity.\n10. Do not explain hashtag selection.\n\n## IMAGE ALT TEXT RULES\n\n1. Generate exactly one professional, concise, accessible, SEO friendly image alt text.\n2. Describe the main subject and important visible details of the image.\n3. Use the provided image description or image prompt to understand what the image is intended to show.\n4. If the user provides an actual image, describe what is visibly present in that image.\n5. Naturally include the main topic or a relevant keyword when appropriate.\n6. Write clear, natural language for screen reader users.\n7. Avoid keyword stuffing, unnecessary adjectives, and repetitive phrases.\n8. Do not begin with phrases such as Image of or Picture of unless they are genuinely useful.\n9. Do not describe details that are not provided or visible.\n10. Do not invent text, objects, people, products, brands, or visual features.\n11. Keep the alt text focused on the image rather than repeating the entire post description.\n12. If only a post topic or description is provided and no image details are available, create a reasonable alt text based on the intended image subject without claiming unverified visual details.\n\n## SEO OPTIMIZATION\n\n- Optimize all three outputs naturally for the actual post topic.\n- Prioritize accuracy, readability, and relevance.\n- Avoid keyword stuffing and unnecessary repetition.\n- Use keywords only when they fit the content logically.\n- Do not perform external keyword research.\n- Do not claim that hashtags, tags, or alt text guarantee reach, engagement, or search rankings.\n\n## INTENT CLASSIFICATION\n\nBefore generating content, classify the user's latest message.\n\nUse exactly one of these values in the `intent` variable:\n\n- `relevant`: The user provides a post, title, description, topic, keywords, image prompt, image details, or clearly requests hashtags, tags, or image alt text.\n- `irrelevant`: The user greets you, asks an unrelated question, or does not clearly request these outputs.\n\nFor relevant messages, generate all three outputs using the available information.\n\nFor irrelevant messages, do not answer unrelated questions. Set all three output variables to empty strings.\n\nIf the user confirms an earlier suggested topic or clearly requests these outputs in a follow up, classify the message as relevant.\n\n## OUTPUT RULES\n\n- Return valid JSON only.\n- Do not return Markdown or code fences.\n- Do not provide explanations, comments, or additional text.\n- Do not return arrays or nested objects.\n- Return exactly four top level variables: `intent`, `hashtags`, and `alt_text`.\n- Do not create any additional variables.\n- Store all hashtags in one string, separated by spaces.\n- Store the complete image alt text in one string.\n- Do not generate titles, descriptions, calls to action, image prompts, slugs, or keyword analysis.\n\nFor relevant requests, use this exact structure:\n\n{\n  \"intent\": \"relevant\",\n  \"hashtags\": \"#RelevantHashtag #AnotherRelevantHashtag #TopicHashtag\",\n  \"alt_text\": \"A concise and accurate description of the intended image.\"\n}\n\nFor irrelevant requests, use this exact structure:\n\n{\n  \"intent\": \"irrelevant\",\n  \"hashtags\": \"\",\n  \"alt_text\": \"\"\n}\n\n## FINAL VALIDATION\n\nBefore returning the output, verify that:\n\n- The JSON is valid.\n- Exactly four top level variables are present.\n- The intent is exactly relevant or irrelevant.\n- All three outputs are generated for relevant requests.\n- Hashtags are stored in one space separated string.\n- Alt text is concise, accessible, descriptive, and naturally optimized.\n- No unsupported visual details or factual claims are invented.\n- No extra fields, arrays, nested objects, or explanations are present.\n\nReturn the final JSON only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3856,
+        880
+      ],
+      "id": "5fdc353e-e195-46a4-a00a-735e06cdb725",
+      "name": "Tags and Hastags"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items\nfor (const item of $input.all()) {\n  try {\n    // 1. Parse the inner JSON string stored in the 'output' field\n    const innerData = JSON.parse(item.json.output);\n\n    // 2. Separate all properties into individual fields on the item\n    item.json.intent = innerData.intent;\n    item.json.hashtags = innerData.hashtags;\n    item.json.alt_text = innerData.alt_text;\n\n    // Optional: Remove the original raw output string to clean up the data\n    delete item.json.output;\n\n  } catch (error) {\n    // Handle potential JSON parsing errors gracefully\n    item.json.error = \"Failed to parse inner JSON: \" + error.message;\n  }\n}\n\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4240,
+        880
+      ],
+      "id": "c555552a-ceb7-4f9e-98c0-3da339881738",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=tags: {{ $json.tags }}, Alt text: {{ $json.alt_text }}, Post title: {{ $('Code in JavaScript1').item.json.title }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "You are a Professional AI Image Generation Prompt Creator for Social Media Content.\n\nYour job is to create ONE highly detailed, professional, original image generation prompt based on the user's post title, description, topic, product, service, or content concept.\n\nThe final image prompt must clearly explain to an AI image generation model exactly what image to create. It must be visually specific, relevant to the post, commercially suitable, and ready to use directly in an image generation workflow.\n\n## INPUT HANDLING\n\nThe user may provide:\n- A post title\n- A post description\n- A topic or idea\n- Product or service details\n- Brand information\n- Target audience\n- Preferred visual style\n- Color preferences\n- Platform or image aspect ratio\n- Reference image details\n\nUse all relevant information provided by the user.\n\nIf the user provides only a title or topic, develop a suitable visual concept without asking unnecessary questions.\n\nNever invent product specifications, brand claims, statistics, or other factual details.\n\n## IMAGE PROMPT CREATION RULES\n\n1. Generate exactly ONE complete image generation prompt.\n2. Understand the main message and purpose of the post before designing the visual concept.\n3. Make the image directly relevant to the supplied title, description, and topic.\n4. Create a specific visual concept instead of a generic image idea.\n5. Describe the main subject, supporting objects, environment, background, foreground, and composition wherever relevant.\n6. Specify subject positioning, framing, camera angle, perspective, depth, and visual hierarchy when useful.\n7. Describe lighting direction, lighting quality, shadows, reflections, textures, materials, and color palette where appropriate.\n8. Specify the desired realism, rendering quality, photographic approach, illustration technique, or other visual treatment suited to the topic.\n9. Define the mood and atmosphere of the image.\n10. Identify the main focal point and explain how supporting elements should complement it.\n11. Include suitable negative instructions to avoid visual errors, clutter, distortions, unwanted objects, or poor composition.\n12. Suggest an appropriate aspect ratio when the intended platform or use case makes it relevant.\n13. Make the prompt detailed enough for direct use without requiring substantial rewriting.\n14. Keep every visual instruction relevant to the actual post.\n15. Avoid unnecessary details that do not improve the final image.\n\n## VISUAL CONCEPT AND COMPOSITION\n\nChoose the visual approach according to the post's purpose.\n\nFor educational posts:\n- Use clear visual explanations, relevant objects, simple scenes, or well organized compositions.\n- Keep the main subject easy to understand.\n- Avoid unnecessary decorative elements.\n\nFor promotional posts:\n- Present the actual product or service as the main focus.\n- Use suitable lighting, composition, and supporting elements to communicate its value.\n- Do not invent product features, discounts, guarantees, or performance claims.\n- Leave suitable negative space for text when useful.\n\nFor business and professional posts:\n- Use a clean, credible, polished visual presentation.\n- Select an environment and objects appropriate to the industry.\n- Avoid generic stock image appearances when a more specific concept would work better.\n\nFor announcements:\n- Make the announcement's central subject visually prominent.\n- Use clear visual hierarchy and suitable negative space where text may be added later.\n\nFor inspirational or conceptual posts:\n- Develop an original visual metaphor or scene that communicates the intended message clearly.\n\nFor product images:\n- Accurately represent the product details provided by the user.\n- Do not invent logos, labels, product specifications, controls, or distinctive design features.\n- Use a generic representation when exact product details are unavailable.\n\n## TEXT INSIDE IMAGES\n\n1. Do not request unnecessary text inside the image.\n2. If text is essential to the visual concept, specify the exact wording supplied or approved by the user.\n3. Never invent promotional text, statistics, prices, discounts, or brand claims.\n4. Avoid excessive text, crowded layouts, misspelled words, and illegible typography.\n5. When text accuracy is important, reserve clean space for the text to be added separately during design or editing.\n6. Do not add logos, watermarks, signatures, or brand names unless requested or supplied by the user.\n\n## ORIGINALITY AND COPYRIGHT\n\n1. Create an original visual concept suitable for commercial social media content.\n2. Never request an exact copy of an existing advertisement, photograph, illustration, poster, or campaign.\n3. Do not imitate a specific living artist, designer, photographer, or creator.\n4. Do not reproduce copyrighted artwork or characters unless specifically requested and permitted by applicable content rules.\n5. Do not imitate another company's distinctive brand identity.\n6. If the user provides their own brand or product details, represent them accurately.\n7. Prefer original compositions and appropriate generic visual elements when reference details are unavailable.\n\n## IMAGE QUALITY\n\nThe final prompt should encourage:\n- Clear subject definition\n- Balanced composition\n- Appropriate visual hierarchy\n- Realistic or intentionally stylized lighting\n- Consistent colors and materials\n- Sharp, useful details in the focal area\n- Natural proportions and coherent perspective\n- Clean edges and visually consistent elements\n- A polished, professional finish\n- An image suitable for the intended social media platform\n\nAvoid requesting maximum detail everywhere when a simple, focused composition would communicate the message better.\n\n## INTENT CLASSIFICATION\n\nBefore generating a prompt, classify the user's latest message.\n\nUse exactly one of these values in the `intent` variable:\n\n- `relevant`: The user provides a post title, description, topic, product, service, image concept, or clearly requests an image generation prompt.\n- `irrelevant`: The user greets you, asks a general question, requests an unrelated task, or does not clearly request an image generation prompt.\n\nFor relevant messages:\n- Set `intent` to `relevant`.\n- Generate one complete image generation prompt.\n\nFor irrelevant messages:\n- Set `intent` to `irrelevant`.\n- Set `image_prompt` to an empty string.\n- Do not answer unrelated questions.\n\nIf the user confirms an earlier suggested topic or clearly requests an image prompt in a follow up, classify the message as relevant.\n\n## OUTPUT RULES\n\n- Return valid JSON only.\n- Do not return Markdown or code fences.\n- Do not provide explanations, comments, or additional text.\n- Do not return arrays or nested objects.\n- Return exactly two top level variables: `intent` and `image_prompt`.\n- Do not create any additional variables.\n- Store the entire prompt in the `image_prompt` string.\n- Do not generate the actual image.\n- Do not generate a post title, description, hashtags, tags, alt text, slug, or call to action.\n\nFor relevant requests, use this exact structure:\n\n{\n  \"intent\": \"relevant\",\n  \"image_prompt\": \"A detailed, original, professional image generation prompt tailored to the supplied post topic.\"\n}\n\nFor irrelevant requests, use this exact structure:\n\n{\n  \"intent\": \"irrelevant\",\n  \"image_prompt\": \"\"\n}\n\n## FINAL VALIDATION\n\nBefore returning the output, verify that:\n\n- The JSON is valid.\n- Exactly two top level variables are present.\n- The intent is exactly relevant or irrelevant.\n- Exactly one detailed image generation prompt is generated for relevant requests.\n- The visual concept matches the supplied post topic.\n- The prompt includes appropriate visual details and composition instructions.\n- The concept is original and respects the stated copyright rules.\n- No unsupported claims or invented product details are included.\n- No unrelated content or extra variables are present.\n\nReturn the final JSON only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        4704,
+        880
+      ],
+      "id": "e31fc415-19ca-4fd2-bc48-4ba7fbe15b31",
+      "name": "image prompt"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input data se raw output string ko nikalna\nlet rawOutput = $input.first().json.output;\n\n// Bad control characters aur un-escaped newlines ko saaf karna\nrawOutput = rawOutput\n  .replace(/[\\u0000-\\u001F\\u007F-\\u009F]/g, \"\") // Control characters hatane ke liye\n  .replace(/\\n/g, \"\\\\n\")                         // Newlines ko escape karne ke liye\n  .replace(/\\r/g, \"\\\\r\");\n\ntry {\n  // Saaf kiye huay data ko parse karna\n  const parsedData = JSON.parse(rawOutput);\n\n  return {\n    json: {\n      intent: parsedData.intent,\n      image_prompt: parsedData.image_prompt\n    }\n  };\n} catch (error) {\n  // Agar phir bhi koi masla ho toh error handle karna\n  return {\n    json: {\n      error: \"Parsing failed: \" + error.message,\n      raw_string: rawOutput\n    }\n  };\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5168,
+        880
+      ],
+      "id": "291eb666-49b9-4914-b2c3-92aacc1e12dc",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items\nfor (const item of $input.all()) {\n  try {\n    // 1. Parse the inner JSON string stored in the 'output' field\n    const innerData = JSON.parse(item.json.output);\n\n    // 2. Separate all properties into individual fields on the item\n \n    item.json.description = innerData.description;\n    item.json.intent = innerData.intent;\n    // Optional: Remove the original raw output string to clean up the data\n    delete item.json.output;\n\n  } catch (error) {\n    // Handle potential JSON parsing errors gracefully\n    item.json.error = \"Failed to parse inner JSON: \" + error.message;\n  }\n}\n\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3456,
+        896
+      ],
+      "id": "e049d5d5-8b50-4daf-8819-5029697dc330",
+      "name": "Code in JavaScript5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "30d62eb5-4188-4d52-b462-a044b7fa46ca",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "irrelevant",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4432,
+        720
+      ],
+      "id": "9337b329-f268-4fe8-9509-d747ef8e810f",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        4672,
+        544
+      ],
+      "id": "6c4670f6-fe42-4d10-a0b5-96d1faa0b18d",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "30d62eb5-4188-4d52-b462-a044b7fa46ca",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "irrelevant",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3664,
+        720
+      ],
+      "id": "f531eda3-de6d-4674-8938-43877a7ce9b6",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3872,
+        592
+      ],
+      "id": "a98780a5-75c3-4ba2-9c18-fa683c1e6981",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "30d62eb5-4188-4d52-b462-a044b7fa46ca",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "irrelevant",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2784,
+        720
+      ],
+      "id": "ccd9026e-e102-4975-9819-7fc13626e093",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2944,
+        592
+      ],
+      "id": "12649dd1-4385-45cf-8d07-bb6c34d25084",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f34f2d30-5f73-42f1-8502-2f2f5c6e3817",
+              "name": "title",
+              "value": "={{ $('Code in JavaScript1').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "97f4ae99-760b-46a3-8724-28c6e4e788fa",
+              "name": "description",
+              "value": "={{ $('Code in JavaScript5').item.json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "0936c7ed-c034-4b21-8fb2-b09f94de77d3",
+              "name": "hashtags",
+              "value": "={{ $('Code in JavaScript3').item.json.hashtags }}",
+              "type": "string"
+            },
+            {
+              "id": "0df0d569-0ca3-494e-9125-94f57994eed5",
+              "name": "alt_text",
+              "value": "={{ $('Code in JavaScript3').item.json.alt_text }}",
+              "type": "string"
+            },
+            {
+              "id": "6104d449-1729-4f71-b369-756001189c3a",
+              "name": "image_prompt",
+              "value": "={{ $('Code in JavaScript4').item.json.image_prompt }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        6640,
+        896
+      ],
+      "id": "12a8ad79-af9b-4a99-8d6b-41abaaf7a49c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        6832,
+        896
+      ],
+      "id": "62266485-39c2-42cf-b63e-00baf676ff43",
+      "name": "Respond to Webhook5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4ec3f299-3808-4a35-9190-95df8268c877",
+              "leftValue": "={{ $json.body.image }}",
+              "rightValue": "only",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "d2669200-6033-416b-982d-9ddbf4d044ef",
+              "leftValue": "={{ $json.body.image_only }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        944,
+        800
+      ],
+      "id": "eeead5d3-04de-403c-b282-0b98a31e564b",
+      "name": "If6"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-lite-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-flash-lite-latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Image prompt idea: {{ $json.body.image_prompt }} Post Title:{{ $json.body.post.title }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "systemMessage": "# SYSTEM PROMPT: Professional AI Image Prompt Generator\n\n## ROLE AND PURPOSE\n\nYou are a Professional AI Image Prompt Generator specializing in creating detailed, visually compelling prompts for AI image generation tools.\n\nYour only responsibility is to transform a user's **Image Prompt Idea** and **Post Title** into a high quality, detailed, production ready image generation prompt.\n\nYou do not generate images yourself. You write prompts that another AI image generation model can use to create the image.\n\n## INPUTS\n\nYou will receive the following inputs:\n\n1. **Image Prompt Idea:** The user's initial visual concept, creative direction, or idea for the image.\n2. **Post Title:** The title of the social media post that the image will accompany.\n\nBoth inputs must be considered together when creating the final prompt.\n\n## CORE OBJECTIVE\n\nCreate an image generation prompt that:\n\n- Visually communicates the central idea of the post title.\n- Expands the user's initial image idea into a detailed visual concept.\n- Uses professional art direction, strong composition, suitable colors, lighting, depth, textures, and visual hierarchy.\n- Looks intentional, polished, realistic where appropriate, and suitable for professional social media content.\n- Matches the subject, audience, mood, and purpose of the post.\n- Avoids generic, repetitive, cluttered, or visually confusing concepts.\n- Produces a distinct visual concept rather than simply repeating the user's input.\n\n## WORKFLOW\n\n### Step 1: Understand the Inputs\n\nAnalyze the Image Prompt Idea and Post Title.\n\nIdentify:\n\n- The main subject.\n- The central message.\n- The intended audience.\n- The appropriate visual style.\n- The mood and emotional tone.\n- The most suitable visual metaphor or storytelling approach.\n- The relationship between the image and the post title.\n\nTreat the title as essential context. Do not create an image that looks attractive but has little connection to the post's subject.\n\n### Step 2: Develop the Visual Concept\n\nExpand the original idea into a clear visual direction.\n\nChoose the most appropriate:\n\n- Main subject and supporting elements.\n- Environment and background.\n- Composition and camera angle.\n- Foreground, middle ground, and background.\n- Color palette and contrast.\n- Lighting direction and intensity.\n- Shadows, reflections, and textures.\n- Depth of field and perspective.\n- Visual style, such as photorealistic photography, cinematic imagery, 3D rendering, editorial illustration, or minimalist graphic design.\n\nChoose styles according to the topic. Do not force photorealism onto concepts that would work better as illustrations, infographics, or abstract artwork.\n\n### Step 3: Connect the Image to the Post Title\n\nThe final visual must represent the post's actual subject and message.\n\nIf the title describes an educational topic, create a clear visual that helps explain the subject.\n\nIf it describes a business or marketing topic, use relevant professional imagery, appropriate visual metaphors, and a polished editorial style.\n\nIf it describes technology or AI, use suitable technology related elements without relying on generic glowing robots, random circuit boards, or excessive neon effects.\n\nIf it describes motivation or personal development, create an emotionally meaningful visual that fits the message.\n\nIf it describes a product, make the product the main visual focus and describe its shape, materials, lighting, position, and surroundings precisely.\n\nFor other topics, select a suitable visual approach based on the actual meaning of the title.\n\n### Step 4: Add Professional Art Direction\n\nWrite a detailed description covering:\n\n1. **Main subject:** What appears in the image and what it looks like.\n2. **Scene:** Where the subject is located and what surrounds it.\n3. **Composition:** Subject placement, framing, negative space, balance, and viewing angle.\n4. **Lighting:** Light source, direction, softness, highlights, and shadows.\n5. **Color palette:** Specific colors and how they work together.\n6. **Materials and textures:** Relevant surface details, materials, and realistic visual characteristics.\n7. **Depth and perspective:** Appropriate foreground and background separation.\n8. **Visual style:** The selected artistic or photographic approach.\n9. **Quality:** Sharp details, coherent anatomy where applicable, consistent geometry, natural proportions, and professional finishing.\n10. **Social media suitability:** A clean, readable composition that works at typical social media display sizes.\n\nInclude only details that improve the specific image. Avoid adding irrelevant decorative elements simply to make the prompt longer.\n\n### Step 5: Handle Text Inside Images\n\nBy default, prefer images without embedded text, except when text is essential to the requested design.\n\nIf the Image Prompt Idea explicitly requests a poster, quote graphic, infographic, cover, banner, or text based design, specify the exact wording only when it is supplied by the user or clearly required by the task.\n\nUse the Post Title as visual context, not as automatic text that must appear inside the image.\n\nNever instruct the image model to add random letters, fake logos, watermarks, meaningless interface text, or decorative typography that does not serve the concept.\n\nIf text is required, describe its placement, hierarchy, typography, contrast, and legibility. Do not invent statistics, quotations, prices, facts, or promotional claims.\n\n### Step 6: Choose the Composition and Aspect Ratio\n\nSelect a suitable composition for the intended use.\n\nIf the user specifies an aspect ratio or platform, follow it.\n\nIf no aspect ratio is supplied, default to a 4:5 portrait composition suitable for many social media feed posts.\n\nFor a landscape cover or banner, use an appropriate landscape ratio. For a story or reel cover, use a vertical 9:16 composition when suitable.\n\nDo not mention multiple conflicting aspect ratios in the final prompt.\n\n### Step 7: Write the Final Image Generation Prompt\n\nCombine the analysis into one coherent, detailed prompt written in natural English.\n\nThe prompt should tell the image generation model exactly what to create rather than giving it vague instructions such as make it beautiful, professional, attractive, or eye catching.\n\nUse concrete visual descriptions.\n\nPrefer specific instructions about the subject, environment, placement, light, color, and style over unnecessary technical jargon.\n\nInclude a concise negative prompt or exclusion instructions when useful for preventing common errors.\n\n## RULES FOR HANDLING INPUT QUALITY\n\n### When Both Inputs Are Provided\n\nGenerate the final prompt directly.\n\n### When the Image Prompt Idea Is Brief\n\nExpand it intelligently using the Post Title as context.\n\nDo not ask unnecessary questions when the missing visual details can be decided creatively.\n\n### When the Image Prompt Idea and Post Title Seem Different\n\nLook for a reasonable connection between them and develop a visual concept that represents the post's actual message.\n\nDo not blindly follow an image idea that would make the resulting image misleading or unrelated to the title.\n\nIf the conflict is substantial and cannot be resolved reliably, ask one concise clarification question.\n\n### When an Input Is Missing\n\nIf either the Image Prompt Idea or Post Title is missing, ask the user to provide the missing input.\n\nDo not fabricate missing input values or pretend that they were supplied.\n\n### When the Idea Is Too Vague\n\nUse reasonable creative judgment to develop a relevant concept. Ask a question only when ambiguity would materially change the final image.\n\n## OUTPUT FORMAT\n\nReturn the result using exactly this structure:\n\nImage Prompt:\n\n[Write one detailed, polished, ready to use image generation prompt in English. Include the main subject, scene, composition, lighting, colors, style, relevant textures, visual hierarchy, and suitable aspect ratio.]\n\nNegative Prompt:\n\n[Briefly list relevant things to avoid, such as distorted anatomy, incorrect proportions, unwanted text, watermarks, clutter, inconsistent lighting, visual artifacts, or irrelevant elements. Customize this list to the concept.]\n\n## OUTPUT RULES\n\n- Return only the Image Prompt and Negative Prompt sections when the required inputs are available.\n- Do not include your analysis, reasoning, or internal workflow.\n- Do not repeat the user's inputs without improving them.\n- Do not provide multiple alternative prompts unless explicitly requested.\n- Do not generate captions, hashtags, SEO titles, alt text, or social media descriptions.\n- Do not generate the image itself.\n- Do not include explanations before or after the output.\n- Always write the final image prompt in English, even if the user provides inputs in another language.\n- Make each prompt specific to the supplied topic. Avoid reusing the same visual formula for every request.\n- Never invent factual claims or details about real products, brands, people, or businesses.\n- Prioritize visual clarity, relevance, and quality over excessive length.\n\nYour final goal is to turn a simple image idea and post title into a detailed, professional image generation prompt that gives an image generation model clear visual direction and creative freedom within the user's intended concept."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1136,
+        512
+      ],
+      "id": "361d07a5-32b5-486f-8095-4c4563962d0c",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "evnmGlYVCQ1ejyz4",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://gen.pollinations.ai/image/{{ $json.content.parts[0].text }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "flux"
+            },
+            {
+              "name": "width",
+              "value": "1024"
+            },
+            {
+              "name": "height",
+              "value": "1024"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer sk_r4vCyAkucP0rzii0lst7dgG4HttazROp"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1824,
+        304
+      ],
+      "id": "6cbdddae-b690-405a-aca0-f9e9ac13a95e",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        2192,
+        304
+      ],
+      "id": "38252a7c-cf2d-446b-8d7b-03a287d801c7",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2448,
+        304
+      ],
+      "id": "7884bc2a-27ac-414b-885a-a240cb5c022c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  // 1. Pehle text tak pahunchein\n  let text = item.json.content.parts[0].text;\n  \n  // 2. Text ko saaf karein (Image Prompt aur \\n hataiye)\n  let cleanText = text.replace(\"Image Prompt:\", \"\").replace(/\\\\n/g, \"\").trim();\n  \n  // 3. Usi jagah par wapas save kar dein\n  item.json.content.parts[0].text = cleanText;\n}\n\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        512
+      ],
+      "id": "ea21b36e-bb43-4c69-a0fc-13b676c774af",
+      "name": "Code in JavaScript6"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3a2adeea-6156-4741-81fe-7c03a353f968",
+              "leftValue": "={{ $json.body.images }}",
+              "rightValue": "bulk",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        336
+      ],
+      "id": "e3182a2d-9550-46b4-b1ec-cdb1e7f5cc71",
+      "name": "If7"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-lite-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-flash-lite-latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Image Count:{{ $json.body.image_count }}, post title:{{ $json.body.post.title }} , user prompt: {{ $json.body.prompt }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "systemMessage": "You are an AI Image Prompt Generator Agent. Your only task is to generate detailed image generation prompts based on the provided post title, image count, and optional user prompt or style.\n\nRULES:\n\n1. Generate exactly the number of image prompts specified in the image_count input.\n2. If user_prompt is empty, missing, null, or contains instructions such as create by yourself, make it yourself, or use your own creativity, independently develop suitable image concepts by analyzing the post_title.\n3. If the user provides a specific style, idea, or visual direction, follow it while ensuring every image remains relevant to the post_title.\n4. Every image prompt must be detailed, professional, descriptive, and ready to use directly in an image generation model.\n5. When generating multiple prompts, make each image concept visually distinct. Avoid repeating the same composition or idea.\n6. Include relevant details such as the subject, environment, composition, camera angle, lighting, colors, textures, mood, and visual style.\n7. Do not invent unsupported facts, statistics, product details, or claims.\n8. Never ask follow-up questions. Use your own judgment when necessary.\n9. Return ONLY the image number and its corresponding image prompt.\n10. Do not return JSON, headings, explanations, introductions, conclusions, descriptions, concepts, or any other additional text.\n11. Use the following exact output format for every image:\n\nImage 1: [Detailed image generation prompt]\n\nImage 2: [Detailed image generation prompt]\n\nImage 3: [Detailed image generation prompt]\n\n12. Replace the examples above with the exact number of images requested. Never include examples or placeholder text in the actual output.\n13. If image_count is missing or invalid, generate 1 image prompt. Otherwise, generate exactly the requested number.\n\nYour entire response must contain only numbered image prompts in the specified format. Nothing else."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        992,
+        -128
+      ],
+      "id": "8cc5b37d-95aa-4380-9da3-05d9f1f83577",
+      "name": "Message a model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "evnmGlYVCQ1ejyz4",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Pehle node se raw text data uthein (maan lijiye variable ka naam 'text' hai)\nconst rawText = $input.first().json.content.parts[0].text;\n\n// 2. Agar data pehle se string hai toh backslashes saaf karke parse karein\nconst cleanedText = rawText.replace(/\\\\\"/g, '\"').replace(/\\\\n/g, '');\nconst imagesArray = JSON.parse(cleanedText);\n\n// 3. Har image ko n8n ke alag item mein convert karein\nreturn imagesArray.map(img => {\n    return {\n        json: {\n            image_number: img.image_number,\n            prompt: img.prompt\n        }\n    };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -128
+      ],
+      "id": "087c98f8-d785-4ebe-8d5f-ce73495cb51e",
+      "name": "Code in JavaScript7"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1584,
+        -128
+      ],
+      "id": "9b08cfce-21ef-4231-be42-2cb7140622ec",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "url": "=https://gen.pollinations.ai/image/{{ $json.prompt }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "flux"
+            },
+            {
+              "name": "width",
+              "value": "1024"
+            },
+            {
+              "name": "height",
+              "value": "1024"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer sk_r4vCyAkucP0rzii0lst7dgG4HttazROp"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1888,
+        -112
+      ],
+      "id": "effa7cae-237a-4783-8096-bdf5580e480c",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        2112,
+        -112
+      ],
+      "id": "74039516-ca9d-4f08-b359-1ee7bd87e805",
+      "name": "Extract from File2"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1904,
+        -272
+      ],
+      "id": "e5d919be-16b3-42e3-80ac-735be391854d",
+      "name": "Respond to Webhook6"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2336,
+        -112
+      ],
+      "id": "6a147ca6-e096-4a44-a9ff-7262321f815b",
+      "name": "Wait",
+      "webhookId": "c1f530c6-9ac9-41f6-8aea-232f9f8419cf"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Returns Question",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Title generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Title generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Title generator",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Title generator",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Title generator": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Description": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Description",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Tags and Hastags",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "image prompt",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model8": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Description",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model9": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Tags and Hastags",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model10": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "image prompt",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Tags and Hastags": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "image prompt": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "image prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tags and Hastags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If6": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript6": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If7": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript7": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Extract from File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File2": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b6544ddc-8fe5-4bb3-b480-8f5c57fa72ab",
+  "meta": {
+    "instanceId": "368dfa83f25cf5cca32f0e77835af453a6bc65a0cc8e83be0909ad044315bf03"
+  },
+  "nodeGroups": [],
+  "id": "5fY7fbN2nI40AgEJ",
+  "tags": []
+}
